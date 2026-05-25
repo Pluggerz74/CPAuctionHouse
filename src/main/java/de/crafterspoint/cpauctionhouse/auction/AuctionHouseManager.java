@@ -3,7 +3,7 @@ package de.crafterspoint.cpauctionhouse.auction;
 import de.crafterspoint.cpauctionhouse.CPAuctionHousePlugin;
 import de.crafterspoint.cpauctionhouse.economy.EconomyBridge;
 import de.crafterspoint.cpauctionhouse.economy.EconomyTransactionResult;
-import de.crafterspoint.cpauctionhouse.storage.sqlite.SQLiteAuctionStorage;
+import de.crafterspoint.cpauctionhouse.storage.AuctionStorageFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -83,6 +83,9 @@ public final class AuctionHouseManager {
      */
     private volatile String inactiveReason;
 
+    /** Human-readable storage label for admin info (e.g. SQLite, MySQL/MariaDB). */
+    private volatile String storageDisplayType = "-";
+
     public AuctionHouseManager(CPAuctionHousePlugin plugin) {
         this.plugin = plugin;
     }
@@ -111,23 +114,21 @@ public final class AuctionHouseManager {
             }
         });
 
-        File dbFile = new File(plugin.getDataFolder(), config.getStorageFile());
-        AuctionStorage created = new SQLiteAuctionStorage(dbFile, plugin.getLogger(), config.isDebug());
         try {
-            // init() runs on the calling thread (which is main here). For
-            // SQLite the table-creation work is sub-millisecond and only
-            // happens at startup, so we don't pay the executor-hop cost.
-            created.init();
-            this.storage = created;
+            AuctionStorageFactory.InitResult init = AuctionStorageFactory.create(plugin);
+            this.storage = init.getStorage();
+            this.storageDisplayType = init.getDisplayType();
             this.active = true;
             this.inactiveReason = null;
             plugin.getLogger().info("Auction House backend ready (storage="
-                    + config.getStorageType() + ").");
+                    + storageDisplayType + ").");
         } catch (AuctionStorageException ex) {
             plugin.getLogger().log(Level.SEVERE,
                     "Auction House storage init failed; AH is disabled. " + ex.getMessage(), ex);
             this.active = false;
             this.inactiveReason = "storage-error";
+            this.storageDisplayType = "mysql".equals(config.getStorageType())
+                    ? "MySQL/MariaDB (failed)" : config.getStorageType();
             shutdownExecutor();
             return;
         }
@@ -149,8 +150,10 @@ public final class AuctionHouseManager {
         // requires a full restart of the backend.
         boolean canHotSwap = active
                 && newConfig.isEnabled()
-                && newConfig.getStorageType().equals(config.getStorageType())
-                && newConfig.getStorageFile().equals(config.getStorageFile());
+                && newConfig.getStorageType().equals(config.getStorageType());
+        if ("sqlite".equals(config.getStorageType())) {
+            canHotSwap = canHotSwap && newConfig.getStorageFile().equals(config.getStorageFile());
+        }
 
         if (canHotSwap) {
             this.config = newConfig;
@@ -1256,7 +1259,7 @@ public final class AuctionHouseManager {
             out.complete(new Stats(
                     false,
                     inactiveReason != null ? inactiveReason : "disabled",
-                    config != null ? config.getStorageType() : "-",
+                    config != null ? storageDisplayType : "-",
                     0, 0, 0, 0, 0,
                     config != null ? config.getSaleTaxPercent() : 0.0D,
                     "Vault",
@@ -1284,7 +1287,7 @@ public final class AuctionHouseManager {
                         if (ex != null) {
                             logStorage("getStats", ex);
                             out.complete(new Stats(
-                                    true, "ok", config.getStorageType(),
+                                    true, "ok", storageDisplayType,
                                     -1, -1, -1, -1, -1,
                                     config.getSaleTaxPercent(),
                                     "Vault",
@@ -1293,7 +1296,7 @@ public final class AuctionHouseManager {
                             return;
                         }
                         out.complete(new Stats(
-                                true, "ok", config.getStorageType(),
+                                true, "ok", storageDisplayType,
                                 counts[0], counts[1], counts[2], counts[3], counts[4],
                                 config.getSaleTaxPercent(),
                                 "Vault",

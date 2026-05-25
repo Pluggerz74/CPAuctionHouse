@@ -10,8 +10,6 @@ import de.crafterspoint.cpauctionhouse.economy.EconomyBridge;
 import de.crafterspoint.cpauctionhouse.economy.NoEconomyBridge;
 import de.crafterspoint.cpauctionhouse.economy.VaultEconomyBridge;
 import de.crafterspoint.cpauctionhouse.message.MessageService;
-import de.crafterspoint.cpauctionhouse.storage.StorageType;
-import de.crafterspoint.cpauctionhouse.storage.mysql.MySqlAuctionStorage;
 import de.crafterspoint.cpauctionhouse.version.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -42,10 +40,6 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
 
         serverVersion = ServerVersion.detect();
         economyBridge = initializeEconomy();
-
-        if (pluginConfig.getStorageType() == StorageType.MYSQL) {
-            new MySqlAuctionStorage(this, pluginConfig).logPlaceholder();
-        }
 
         auctionHouseManager = new AuctionHouseManager(this);
         auctionHouseManager.enable();

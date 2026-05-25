@@ -28,6 +28,6 @@ public enum StorageType {
                 return type;
             }
         }
-        return SQLITE;
+        return null;
     }
 }

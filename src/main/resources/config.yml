@@ -1,5 +1,6 @@
 storage:
-  type: sqlite
+  type: sqlite # sqlite or mysql
+  fallback-to-sqlite-on-error: false
 
 sqlite:
   file: auctionhouse.db
@@ -12,6 +13,10 @@ mysql:
   password: ""
   pool-size: 10
   use-ssl: false
+  connection-timeout-ms: 10000
+  max-lifetime-ms: 1800000
+  idle-timeout-ms: 600000
+  parameters: "useUnicode=true&characterEncoding=utf8"
 
 economy:
   require-vault: true
