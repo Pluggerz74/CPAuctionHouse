@@ -7,6 +7,7 @@ import de.crafterspoint.cpauctionhouse.auction.AuctionHouseManager;
 import de.crafterspoint.cpauctionhouse.auction.AuctionListing;
 import de.crafterspoint.cpauctionhouse.auction.AuctionPermission;
 import de.crafterspoint.cpauctionhouse.message.MessageService;
+import de.crafterspoint.cpauctionhouse.auction.gui.input.AnvilPriceInput;
 import de.crafterspoint.cpauctionhouse.util.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -58,6 +59,7 @@ public final class AuctionGuiManager {
     private final AuctionHouseManager auction;
     private final MessageService messages;
     private final AuctionGuiItemFactory items;
+    private final AnvilPriceInput anvilPriceInput;
 
     private final Map<UUID, AuctionGuiSession> sessions = new ConcurrentHashMap<UUID, AuctionGuiSession>();
     private final Map<UUID, Long> lastRefreshMs = new ConcurrentHashMap<UUID, Long>();
@@ -67,6 +69,7 @@ public final class AuctionGuiManager {
         this.auction = auction;
         this.messages = plugin.getMessageService();
         this.items = new AuctionGuiItemFactory(messages, auction);
+        this.anvilPriceInput = new AnvilPriceInput(plugin, messages);
     }
 
     public boolean isEnabled() {
@@ -166,7 +169,7 @@ public final class AuctionGuiManager {
                 openBrowse(player, 1);
                 break;
             case OPEN_SELL_HELP:
-                openSellHelp(player);
+                openSellPriceInput(player);
                 break;
             case OPEN_MY_LISTINGS:
                 openMyListings(player, 1);
@@ -242,6 +245,115 @@ public final class AuctionGuiManager {
         }
         lastRefreshMs.put(id, Long.valueOf(now));
         loadBrowse(player, session, session.getCurrentPage());
+    }
+
+    public void openSellPriceInput(final Player player) {
+        if (!player.isOnline()) {
+            return;
+        }
+        if (!checkGuiReady(player)) {
+            return;
+        }
+        if (!player.hasPermission(AuctionPermission.SELL)) {
+            messages.sendPrefixed(player, "auction.no-permission");
+            return;
+        }
+        AuctionConfig cfg = auction.getConfig();
+        if (cfg == null || !cfg.isGuiSellUseAnvilPriceInput()) {
+            openSellHelp(player);
+            return;
+        }
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        if (hand == null || hand.getType() == Material.AIR || hand.getAmount() <= 0) {
+            messages.sendPrefixed(player, "auction.gui.sell-no-item");
+            return;
+        }
+        if (cfg.getBlockedMaterials().contains(hand.getType())) {
+            Map<String, String> ph = new HashMap<String, String>();
+            ph.put("material", hand.getType().name());
+            messages.sendPrefixed(player, "auction.blocked-item", ph);
+            return;
+        }
+        final ItemStack snapshot = hand.clone();
+        closeGuiSessionForAnvil(player);
+
+        boolean opened = anvilPriceInput.open(player, cfg, new AnvilPriceInput.Callback() {
+            @Override
+            public void onValidPrice(final Player p, final double price) {
+                if (!p.isOnline()) {
+                    return;
+                }
+                ItemStack currentHand = p.getInventory().getItemInMainHand();
+                if (!handMatchesSnapshot(currentHand, snapshot)) {
+                    messages.sendPrefixed(p, "auction.gui.sell-item-changed");
+                    return;
+                }
+                auction.createListing(p, price).thenAccept(new java.util.function.Consumer<AuctionHouseManager.ListingCreateResult>() {
+                    @Override
+                    public void accept(AuctionHouseManager.ListingCreateResult result) {
+                        if (!p.isOnline()) {
+                            return;
+                        }
+                        if (result instanceof AuctionHouseManager.ListingCreateResult.Success) {
+                            AuctionHouseManager.ListingCreateResult.Success s =
+                                    (AuctionHouseManager.ListingCreateResult.Success) result;
+                            Map<String, String> ph = new HashMap<String, String>();
+                            ph.put("id", Long.toString(s.listingId()));
+                            ph.put("price", auction.formatPrice(s.price()));
+                            ph.put("item", describeItem(s.snapshot()));
+                            ph.put("amount", Integer.toString(s.snapshot().getAmount()));
+                            messages.sendPrefixed(p, "auction.listing-created", ph);
+                            reopenAfterSellCreate(p, cfg);
+                        } else if (result instanceof AuctionHouseManager.ListingCreateResult.Failure) {
+                            AuctionHouseManager.ListingCreateResult.Failure f =
+                                    (AuctionHouseManager.ListingCreateResult.Failure) result;
+                            messages.sendPrefixed(p, f.messageKey(), f.placeholders());
+                            openMain(p);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(Player p) {
+                if (p.isOnline()) {
+                    messages.sendPrefixed(p, "auction.gui.sell-cancelled");
+                }
+            }
+        });
+        if (!opened) {
+            messages.sendPrefixed(player, "auction.gui.anvil-open-failed");
+            openSellHelp(player);
+        }
+    }
+
+    private void reopenAfterSellCreate(Player player, AuctionConfig cfg) {
+        if (cfg.isGuiSellReturnToMainAfterCreate()) {
+            openMain(player);
+        } else if (cfg.isGuiSellOpenListingsAfterCreate()) {
+            openMyListings(player, 1);
+        } else {
+            openMain(player);
+        }
+    }
+
+    private void closeGuiSessionForAnvil(Player player) {
+        AuctionGuiSession session = sessions.get(player.getUniqueId());
+        if (session != null) {
+            session.markControlledTransition();
+        }
+        player.closeInventory();
+        sessions.remove(player.getUniqueId());
+    }
+
+    private static boolean handMatchesSnapshot(ItemStack current, ItemStack snapshot) {
+        if (current == null || snapshot == null) {
+            return false;
+        }
+        if (current.getType() == Material.AIR || current.getAmount() <= 0) {
+            return false;
+        }
+        return current.isSimilar(snapshot) && current.getAmount() == snapshot.getAmount();
     }
 
     private void openSellHelp(Player player) {

@@ -51,6 +51,8 @@ public final class AuctionConfig {
 
     private final boolean guiSellEnabled;
     private final boolean guiSellUseAnvilPriceInput;
+    private final String guiAnvilPriceTitle;
+    private final String guiAnvilPriceInitialText;
     private final boolean guiSellReturnToMainAfterCreate;
     private final boolean guiSellOpenListingsAfterCreate;
 
@@ -131,7 +133,10 @@ public final class AuctionConfig {
         this.guiFillerName = root.getString("auction.gui.filler.name", " ");
 
         this.guiSellEnabled = root.getBoolean("auction.gui.sell.enabled", false);
-        this.guiSellUseAnvilPriceInput = root.getBoolean("auction.gui.sell.use-anvil-price-input", true);
+        this.guiSellUseAnvilPriceInput = root.getBoolean("auction.gui.anvil-price-input",
+                root.getBoolean("auction.gui.sell.use-anvil-price-input", true));
+        this.guiAnvilPriceTitle = root.getString("auction.gui.anvil-price-title", "&6Preis eingeben");
+        this.guiAnvilPriceInitialText = root.getString("auction.gui.anvil-price-initial-text", "100");
         this.guiSellReturnToMainAfterCreate = root.getBoolean(
                 "auction.gui.sell.return-to-main-after-create", false);
         this.guiSellOpenListingsAfterCreate = root.getBoolean(
@@ -268,6 +273,14 @@ public final class AuctionConfig {
 
     public boolean isGuiSellUseAnvilPriceInput() {
         return guiSellUseAnvilPriceInput;
+    }
+
+    public String getGuiAnvilPriceTitle() {
+        return guiAnvilPriceTitle;
+    }
+
+    public String getGuiAnvilPriceInitialText() {
+        return guiAnvilPriceInitialText;
     }
 
     public boolean isGuiSellReturnToMainAfterCreate() {

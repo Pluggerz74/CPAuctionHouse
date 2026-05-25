@@ -43,6 +43,9 @@ auction:
     enabled: true
     title: "&6Auktionshaus"
     refresh-cooldown-ms: 750
+    anvil-price-input: true
+    anvil-price-title: "&6Preis eingeben"
+    anvil-price-initial-text: "100"
     info-button-cooldown-seconds: 5
     rows:
       main: 3

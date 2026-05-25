@@ -12,17 +12,12 @@ CPAuctionHouse is a standalone premium auction house plugin targeting **Minecraf
 - Bukkit / Spigot / Paper / Purpur 1.13+
 - [Vault](https://www.spigotmc.org/resources/vault.34315/) with a registered economy provider (required for auction features)
 
-## Features (scaffold)
+## Features
 
-This repository currently contains the **standalone project scaffold**:
-
-- Plugin bootstrap and lifecycle
-- Configuration and German messages
-- Vault economy bridge abstraction
-- Storage backend selection (SQLite / MySQL placeholders)
-- Command registration with placeholder responses
-
-Auction house logic will be integrated in subsequent development steps.
+- Full auction backend (listings, buy, cancel, collect, browse, search)
+- German GUI hub (`/ah`) with browse, my listings, collect, and anvil sell price input
+- Text commands as fallback (`/ah sell`, `/ah browse`, etc.)
+- SQLite storage (shaded), Vault economy integration
 
 ## Build
 
@@ -34,8 +29,17 @@ The compiled plugin JAR is written to `target/cpauctionhouse-1.0.0-SNAPSHOT.jar`
 
 ## Configuration
 
-- `config.yml` — storage, economy, and general settings
+- `config.yml` — storage, economy, auction, and GUI settings
 - `messages.yml` — user-facing German messages
+
+## Third-Party Libraries
+
+This plugin shades the following libraries into the JAR:
+
+- **AnvilGUI** (WesJD, MIT) — anvil text input for GUI sell flow
+- **sqlite-jdbc** (Xerial, Apache 2.0) — SQLite database driver
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution details.
 
 ## License
 
