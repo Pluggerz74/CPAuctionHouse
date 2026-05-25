@@ -97,6 +97,21 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <minimizeJar>false</minimizeJar>
+                            <!--
+                              Wrapper26_R1 is compiled for Java 25 (class file major 69).
+                              Paper 1.21.4 plugin remapping on Java 21 fails if those classes
+                              are bundled. Exclude them; 1.13 through 1.21.x wrappers remain.
+                            -->
+                            <filters>
+                                <filter>
+                                    <artifact>net.wesjd:anvilgui</artifact>
+                                    <excludes>
+                                        <exclude>net/wesjd/anvilgui/version/Wrapper26_R1.class</exclude>
+                                        <exclude>net/wesjd/anvilgui/version/Wrapper26_R1$*</exclude>
+                                        <exclude>META-INF/maven/net.wesjd/anvilgui-26_R1/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>net.wesjd.anvilgui</pattern>
