@@ -2,6 +2,7 @@ package de.crafterspoint.cpauctionhouse.message;
 
 import de.crafterspoint.cpauctionhouse.util.Text;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -47,6 +48,22 @@ public final class MessageService {
                     new InputStreamReader(defaultsStream, StandardCharsets.UTF_8));
             messages.setDefaults(defaults);
             messages.options().copyDefaults(true);
+            mergeMissingDefaults(messages, defaults);
+        }
+    }
+
+    /**
+     * Copies keys from the bundled defaults into the live config when the on-disk
+     * messages.yml predates newer plugin versions (common after plugin updates).
+     */
+    private static void mergeMissingDefaults(FileConfiguration target, Configuration defaults) {
+        if (target == null || defaults == null) {
+            return;
+        }
+        for (String path : defaults.getKeys(true)) {
+            if (!target.isSet(path)) {
+                target.set(path, defaults.get(path));
+            }
         }
     }
 
@@ -56,10 +73,21 @@ public final class MessageService {
     }
 
     public String getRaw(String key) {
-        if (messages == null) {
-            return key;
+        if (messages == null || key == null) {
+            return key == null ? "" : key;
         }
-        return messages.getString(key, key);
+        if (messages.isSet(key)) {
+            String value = messages.getString(key);
+            return value != null ? value : key;
+        }
+        Configuration defaults = messages.getDefaults();
+        if (defaults != null && defaults.isSet(key)) {
+            String value = defaults.getString(key);
+            if (value != null) {
+                return value;
+            }
+        }
+        return key;
     }
 
     public String message(String key) {

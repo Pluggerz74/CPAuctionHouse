@@ -10,7 +10,6 @@ import de.crafterspoint.cpauctionhouse.auction.AuctionTimeFormatter;
 import de.crafterspoint.cpauctionhouse.message.MessageService;
 import de.crafterspoint.cpauctionhouse.util.Text;
 import de.crafterspoint.cpauctionhouse.version.MaterialResolver;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -69,10 +68,10 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(MaterialResolver.resolve("COMPASS", "PAPER"));
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message("auction.gui.button-search")));
+            meta.setDisplayName(msg("auction.gui.button-search"));
             List<String> lore = new ArrayList<String>();
-            lore.add(color("&7Suche nach Item, Verkaeufer oder ID."));
-            lore.add(color(messages.message("auction.gui.click-search")));
+            lore.add(msg("auction.gui.search-hint"));
+            lore.add(msg("auction.gui.click-search"));
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -83,9 +82,9 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(MaterialResolver.resolve("COMPASS", "PAPER"));
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message("auction.gui.button-search-input")));
+            meta.setDisplayName(msg("auction.gui.button-search-input"));
             List<String> lore = new ArrayList<String>();
-            lore.add(color(messages.message("auction.gui.click-search")));
+            lore.add(msg("auction.gui.click-search"));
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -96,12 +95,12 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(Material.HOPPER);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message("auction.gui.button-sort")));
+            meta.setDisplayName(msg("auction.gui.button-sort"));
             List<String> lore = new ArrayList<String>();
             Map<String, String> ph = new HashMap<String, String>();
             ph.put("sort", AuctionBrowseSortFormatter.guiLabel(sort, messages));
-            lore.add(color(messages.message("auction.gui.sort-current", ph)));
-            lore.add(color(messages.message("auction.gui.click-cycle-sort")));
+            lore.add(msg("auction.gui.sort-current", ph));
+            lore.add(msg("auction.gui.click-cycle-sort"));
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -112,9 +111,9 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(Material.BARRIER);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message("auction.gui.button-reset-search")));
+            meta.setDisplayName(msg("auction.gui.button-reset-search"));
             List<String> lore = new ArrayList<String>();
-            lore.add(color(messages.message("auction.gui.click-reset-search")));
+            lore.add(msg("auction.gui.click-reset-search"));
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -125,21 +124,21 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(Material.BOOK);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color("&6Marktplatz"));
+            meta.setDisplayName(msg("auction.gui.button-browse"));
             List<String> lore = new ArrayList<String>();
             Map<String, String> pagePh = new HashMap<String, String>();
             pagePh.put("page", Integer.toString(page));
             pagePh.put("pages", Integer.toString(totalPages));
-            lore.add(color(messages.message("auction.gui.page-current", pagePh)));
+            lore.add(msg("auction.gui.page-current", pagePh));
             Map<String, String> sortPh = new HashMap<String, String>();
             sortPh.put("sort", AuctionBrowseSortFormatter.guiLabel(sort, messages));
-            lore.add(color(messages.message("auction.gui.sort-current", sortPh)));
+            lore.add(msg("auction.gui.sort-current", sortPh));
             if (searchTerm != null && searchTerm.trim().length() > 0) {
                 Map<String, String> searchPh = new HashMap<String, String>();
                 searchPh.put("search", searchTerm.trim());
-                lore.add(color(messages.message("auction.gui.search-current", searchPh)));
+                lore.add(msg("auction.gui.search-current", searchPh));
             } else {
-                lore.add(color(messages.message("auction.gui.search-none")));
+                lore.add(msg("auction.gui.search-none"));
             }
             meta.setLore(lore);
             stack.setItemMeta(meta);
@@ -194,9 +193,9 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(Material.PAPER);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message("auction.gui.button-collect")));
+            meta.setDisplayName(msg("auction.gui.button-collect"));
             List<String> lore = new ArrayList<String>();
-            lore.add(color(messages.message("auction.gui.collect-info")));
+            lore.add(msg("auction.gui.collect-info"));
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -212,10 +211,10 @@ public final class AuctionGuiItemFactory {
         }
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message("auction.gui.sell-help-title")));
+            meta.setDisplayName(msg("auction.gui.sell-help-title"));
             List<String> lore = new ArrayList<String>();
-            lore.add(color(messages.message("auction.gui.sell-help-line-1")));
-            lore.add(color(messages.message("auction.gui.sell-help-line-2")));
+            lore.add(msg("auction.gui.sell-help-line-1"));
+            lore.add(msg("auction.gui.sell-help-line-2"));
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -226,9 +225,9 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(Material.BOOK);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message("auction.gui.button-search")));
+            meta.setDisplayName(msg("auction.gui.button-search"));
             List<String> lore = new ArrayList<String>();
-            lore.add(color(messages.message("auction.gui.search-help")));
+            lore.add(msg("auction.gui.search-help"));
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -316,7 +315,7 @@ public final class AuctionGuiItemFactory {
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(color("&7Seite &e" + page + "&7/&e" + pages));
-            meta.setLore(Collections.singletonList(color(messages.message("auction.gui.page-indicator", ph))));
+            meta.setLore(Collections.singletonList(msg("auction.gui.page-indicator", ph)));
             stack.setItemMeta(meta);
         }
         return stack;
@@ -326,10 +325,18 @@ public final class AuctionGuiItemFactory {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(messages.message(messageKey)));
+            meta.setDisplayName(msg(messageKey));
             stack.setItemMeta(meta);
         }
         return stack;
+    }
+
+    private String msg(String key) {
+        return color(messages.message(key));
+    }
+
+    private String msg(String key, Map<String, String> placeholders) {
+        return color(messages.message(key, placeholders));
     }
 
     private static String safeName(String name) {
@@ -340,4 +347,3 @@ public final class AuctionGuiItemFactory {
         return Text.colorize(input);
     }
 }
-

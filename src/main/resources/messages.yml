@@ -94,6 +94,7 @@ auction:
     button-my-listings: "&bMeine Angebote"
     button-collect: "&dAbholen"
     button-search: "&fSuche"
+    search-hint: "&7Suche nach Item, Verkaeufer oder ID."
     button-back: "&7Zurueck"
     button-close: "&cSchliessen"
     button-refresh: "&aAktualisieren"
