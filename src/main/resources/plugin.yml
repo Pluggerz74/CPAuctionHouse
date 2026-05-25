@@ -25,3 +25,7 @@ permissions:
     default: true
   cpauctionhouse.collect:
     default: true
+  cpauctionhouse.browse:
+    default: true
+  cpauctionhouse.listings:
+    default: true

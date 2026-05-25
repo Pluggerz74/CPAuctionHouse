@@ -1,5 +1,6 @@
 package de.crafterspoint.cpauctionhouse;
 
+import de.crafterspoint.cpauctionhouse.auction.AuctionCommand;
 import de.crafterspoint.cpauctionhouse.auction.AuctionHouseManager;
 import de.crafterspoint.cpauctionhouse.command.CPAuctionHouseCommand;
 import de.crafterspoint.cpauctionhouse.config.PluginConfig;
@@ -64,6 +65,14 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
         getLogger().info("CPAuctionHouse disabled.");
     }
 
+    /**
+     * Reloads config, messages, economy bridge, and the auction backend without
+     * re-registering commands or listeners.
+     */
+    public void reloadEverything() {
+        reloadPlugin();
+    }
+
     public void reloadPlugin() {
         reloadConfig();
         pluginConfig.load();
@@ -89,17 +98,18 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
     }
 
     private void registerCommands() {
-        CPAuctionHouseCommand executor = new CPAuctionHouseCommand(this, messageService);
-
+        CPAuctionHouseCommand cpCommand = new CPAuctionHouseCommand(this, messageService);
         PluginCommand cpAuctionHouse = getCommand("cpauctionhouse");
         if (cpAuctionHouse != null) {
-            cpAuctionHouse.setExecutor(executor);
-            cpAuctionHouse.setTabCompleter(executor);
+            cpAuctionHouse.setExecutor(cpCommand);
+            cpAuctionHouse.setTabCompleter(cpCommand);
         }
 
+        AuctionCommand auctionCommand = new AuctionCommand(this, auctionHouseManager);
         PluginCommand auctionHouse = getCommand("auctionhouse");
         if (auctionHouse != null) {
-            auctionHouse.setExecutor(executor);
+            auctionHouse.setExecutor(auctionCommand);
+            auctionHouse.setTabCompleter(auctionCommand);
         }
     }
 

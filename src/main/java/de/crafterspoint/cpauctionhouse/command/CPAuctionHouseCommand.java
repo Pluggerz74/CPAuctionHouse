@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Handles /cpauctionhouse, /cpah, /auctionhouse, /ah, and /auktion.
+ * Handles /cpauctionhouse and /cpah plugin admin commands.
  */
 public final class CPAuctionHouseCommand implements CommandExecutor, TabCompleter {
 
@@ -31,16 +31,10 @@ public final class CPAuctionHouseCommand implements CommandExecutor, TabComplete
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String name = command.getName().toLowerCase(Locale.ROOT);
-
-        if ("cpauctionhouse".equals(name) || "cpah".equals(name)) {
-            return handleAdminCommand(sender, args);
+        if (!"cpauctionhouse".equals(name) && !"cpah".equals(name)) {
+            return false;
         }
-
-        if ("auctionhouse".equals(name) || "ah".equals(name) || "auktion".equals(name)) {
-            return handlePlayerCommand(sender);
-        }
-
-        return false;
+        return handleAdminCommand(sender, args);
     }
 
     private boolean handleAdminCommand(CommandSender sender, String[] args) {
@@ -49,7 +43,7 @@ public final class CPAuctionHouseCommand implements CommandExecutor, TabComplete
                 messages.send(sender, "no-permission");
                 return true;
             }
-            plugin.reloadPlugin();
+            plugin.reloadEverything();
             messages.send(sender, "reload-success");
             return true;
         }
@@ -69,6 +63,12 @@ public final class CPAuctionHouseCommand implements CommandExecutor, TabComplete
         }
 
         messages.sendPrefixedPlaceholder(sender);
+        AuctionHouseManager manager = plugin.getAuctionHouseManager();
+        if (manager != null && manager.isActive()) {
+            messages.sendRaw(sender, "backend-active");
+        } else {
+            messages.sendRaw(sender, "backend-inactive");
+        }
         return true;
     }
 
@@ -106,22 +106,6 @@ public final class CPAuctionHouseCommand implements CommandExecutor, TabComplete
                 messages.sendRaw(sender, "auction.admin-info-economy", economy);
             }
         });
-    }
-
-    private boolean handlePlayerCommand(CommandSender sender) {
-        if (!sender.hasPermission("cpauctionhouse.use")) {
-            messages.send(sender, "no-permission");
-            return true;
-        }
-
-        messages.sendPrefixedPlaceholder(sender);
-        AuctionHouseManager manager = plugin.getAuctionHouseManager();
-        if (manager != null && manager.isActive()) {
-            messages.sendRaw(sender, "backend-active");
-        } else {
-            messages.sendRaw(sender, "backend-inactive");
-        }
-        return true;
     }
 
     @Override

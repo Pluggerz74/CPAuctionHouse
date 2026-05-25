@@ -7,6 +7,9 @@ placeholder: "&7Backend bereit. Spieler-Befehle und GUI folgen im naechsten Schr
 backend-active: "&aAuktionshaus-Backend ist aktiv."
 backend-inactive: "&cAuktionshaus-Backend ist derzeit nicht aktiv."
 
+general:
+  player-only: "&cDieser Befehl ist nur fuer Spieler."
+
 economy:
   unavailable: "&cKein Economy-System verfuegbar."
   insufficient-funds: "&cDu hast nicht genug Geld."
