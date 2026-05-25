@@ -1,5 +1,7 @@
 package de.crafterspoint.cpauctionhouse.auction.gui;
 
+import de.crafterspoint.cpauctionhouse.auction.AuctionBrowseSort;
+import de.crafterspoint.cpauctionhouse.auction.AuctionBrowseSortFormatter;
 import de.crafterspoint.cpauctionhouse.auction.AuctionCollectItem;
 import de.crafterspoint.cpauctionhouse.auction.AuctionConfig;
 import de.crafterspoint.cpauctionhouse.auction.AuctionHouseManager;
@@ -64,8 +66,85 @@ public final class AuctionGuiItemFactory {
     }
 
     public ItemStack mainSearchButton() {
-        return button(MaterialResolver.resolve("OAK_SIGN", "SIGN", "PAPER"),
-                "auction.gui.button-search");
+        ItemStack stack = new ItemStack(MaterialResolver.resolve("COMPASS", "PAPER"));
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(color(messages.message("auction.gui.button-search")));
+            List<String> lore = new ArrayList<String>();
+            lore.add(color("&7Suche nach Item, Verkaeufer oder ID."));
+            lore.add(color(messages.message("auction.gui.click-search")));
+            meta.setLore(lore);
+            stack.setItemMeta(meta);
+        }
+        return stack;
+    }
+
+    public ItemStack browseSearchButton() {
+        ItemStack stack = new ItemStack(MaterialResolver.resolve("COMPASS", "PAPER"));
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(color(messages.message("auction.gui.button-search-input")));
+            List<String> lore = new ArrayList<String>();
+            lore.add(color(messages.message("auction.gui.click-search")));
+            meta.setLore(lore);
+            stack.setItemMeta(meta);
+        }
+        return stack;
+    }
+
+    public ItemStack browseSortButton(AuctionBrowseSort sort) {
+        ItemStack stack = new ItemStack(Material.HOPPER);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(color(messages.message("auction.gui.button-sort")));
+            List<String> lore = new ArrayList<String>();
+            Map<String, String> ph = new HashMap<String, String>();
+            ph.put("sort", AuctionBrowseSortFormatter.guiLabel(sort, messages));
+            lore.add(color(messages.message("auction.gui.sort-current", ph)));
+            lore.add(color(messages.message("auction.gui.click-cycle-sort")));
+            meta.setLore(lore);
+            stack.setItemMeta(meta);
+        }
+        return stack;
+    }
+
+    public ItemStack browseResetSearchButton() {
+        ItemStack stack = new ItemStack(Material.BARRIER);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(color(messages.message("auction.gui.button-reset-search")));
+            List<String> lore = new ArrayList<String>();
+            lore.add(color(messages.message("auction.gui.click-reset-search")));
+            meta.setLore(lore);
+            stack.setItemMeta(meta);
+        }
+        return stack;
+    }
+
+    public ItemStack browseStatusTile(int page, int totalPages, AuctionBrowseSort sort, String searchTerm) {
+        ItemStack stack = new ItemStack(Material.BOOK);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(color("&6Marktplatz"));
+            List<String> lore = new ArrayList<String>();
+            Map<String, String> pagePh = new HashMap<String, String>();
+            pagePh.put("page", Integer.toString(page));
+            pagePh.put("pages", Integer.toString(totalPages));
+            lore.add(color(messages.message("auction.gui.page-current", pagePh)));
+            Map<String, String> sortPh = new HashMap<String, String>();
+            sortPh.put("sort", AuctionBrowseSortFormatter.guiLabel(sort, messages));
+            lore.add(color(messages.message("auction.gui.sort-current", sortPh)));
+            if (searchTerm != null && searchTerm.trim().length() > 0) {
+                Map<String, String> searchPh = new HashMap<String, String>();
+                searchPh.put("search", searchTerm.trim());
+                lore.add(color(messages.message("auction.gui.search-current", searchPh)));
+            } else {
+                lore.add(color(messages.message("auction.gui.search-none")));
+            }
+            meta.setLore(lore);
+            stack.setItemMeta(meta);
+        }
+        return stack;
     }
 
     public ItemStack backButton() {
@@ -100,7 +179,10 @@ public final class AuctionGuiItemFactory {
         return button(Material.CHEST, "auction.gui.button-collect-all");
     }
 
-    public ItemStack emptyBrowseTile() {
+    public ItemStack emptyBrowseTile(boolean searchActive) {
+        if (searchActive) {
+            return button(Material.PAPER, "auction.search-empty");
+        }
         return button(Material.PAPER, "auction.gui.no-listings");
     }
 

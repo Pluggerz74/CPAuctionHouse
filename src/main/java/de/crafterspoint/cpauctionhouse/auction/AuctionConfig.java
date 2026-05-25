@@ -53,6 +53,9 @@ public final class AuctionConfig {
     private final boolean guiSellUseAnvilPriceInput;
     private final String guiAnvilPriceTitle;
     private final String guiAnvilPriceInitialText;
+    private final boolean guiAnvilSearchInput;
+    private final String guiAnvilSearchTitle;
+    private final String guiAnvilSearchInitialText;
     private final boolean guiSellReturnToMainAfterCreate;
     private final boolean guiSellOpenListingsAfterCreate;
 
@@ -137,13 +140,17 @@ public final class AuctionConfig {
                 root.getBoolean("auction.gui.sell.use-anvil-price-input", true));
         this.guiAnvilPriceTitle = root.getString("auction.gui.anvil-price-title", "&6Preis eingeben");
         this.guiAnvilPriceInitialText = root.getString("auction.gui.anvil-price-initial-text", "100");
+        this.guiAnvilSearchInput = root.getBoolean("auction.gui.anvil-search-input", true);
+        this.guiAnvilSearchTitle = root.getString("auction.gui.anvil-search-title", "&6Suche eingeben");
+        this.guiAnvilSearchInitialText = root.getString("auction.gui.anvil-search-initial-text", "Suche");
         this.guiSellReturnToMainAfterCreate = root.getBoolean(
                 "auction.gui.sell.return-to-main-after-create", false);
         this.guiSellOpenListingsAfterCreate = root.getBoolean(
                 "auction.gui.sell.open-listings-after-create", true);
 
         this.guiBrowseDefaultSort = AuctionBrowseSort.fromConfig(
-                root.getString("auction.gui.browse.default-sort", "newest"));
+                root.getString("auction.gui.default-sort",
+                        root.getString("auction.gui.browse.default-sort", "NEWEST")));
         this.guiBrowseShowRefreshButton = root.getBoolean(
                 "auction.gui.browse.show-refresh-button", true);
         this.guiBrowseShowSortButton = root.getBoolean(
@@ -281,6 +288,22 @@ public final class AuctionConfig {
 
     public String getGuiAnvilPriceInitialText() {
         return guiAnvilPriceInitialText;
+    }
+
+    public boolean isGuiAnvilSearchInput() {
+        return guiAnvilSearchInput;
+    }
+
+    public String getGuiAnvilSearchTitle() {
+        return guiAnvilSearchTitle;
+    }
+
+    public String getGuiAnvilSearchInitialText() {
+        return guiAnvilSearchInitialText;
+    }
+
+    public AuctionBrowseSort getGuiDefaultSort() {
+        return guiBrowseDefaultSort;
     }
 
     public boolean isGuiSellReturnToMainAfterCreate() {

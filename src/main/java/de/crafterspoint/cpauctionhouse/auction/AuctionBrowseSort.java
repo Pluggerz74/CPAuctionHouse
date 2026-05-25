@@ -50,16 +50,22 @@ public enum AuctionBrowseSort {
             return NEWEST;
         }
         String n = raw.trim().toLowerCase(Locale.ROOT).replace('-', '_');
+        if ("newest".equals(n)) {
+            return NEWEST;
+        }
         if ("oldest".equals(n)) {
             return OLDEST;
         }
-        if ("price_asc".equals(n) || "priceasc".equals(n)) {
+        if ("price_asc".equals(n) || "priceasc".equals(n)
+                || "price_low_to_high".equals(n) || "price_low".equals(n)) {
             return PRICE_ASC;
         }
-        if ("price_desc".equals(n) || "pricedesc".equals(n)) {
+        if ("price_desc".equals(n) || "pricedesc".equals(n)
+                || "price_high_to_low".equals(n) || "price_high".equals(n)) {
             return PRICE_DESC;
         }
-        if ("expiring".equals(n) || "expiring_soon".equals(n) || "expiringsoon".equals(n)) {
+        if ("expiring".equals(n) || "expiring_soon".equals(n) || "expiringsoon".equals(n)
+                || "ending_soon".equals(n)) {
             return EXPIRING_SOON;
         }
         return NEWEST;

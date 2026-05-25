@@ -51,6 +51,10 @@ auction:
     anvil-price-input: true
     anvil-price-title: "&6Preis eingeben"
     anvil-price-initial-text: "100"
+    anvil-search-input: true
+    anvil-search-title: "&6Suche eingeben"
+    anvil-search-initial-text: "Suche"
+    default-sort: "NEWEST"
     info-button-cooldown-seconds: 5
     rows:
       main: 3

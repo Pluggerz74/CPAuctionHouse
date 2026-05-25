@@ -1,5 +1,6 @@
 package de.crafterspoint.cpauctionhouse.auction.gui;
 
+import de.crafterspoint.cpauctionhouse.auction.AuctionBrowseSort;
 import de.crafterspoint.cpauctionhouse.auction.AuctionCollectItem;
 import de.crafterspoint.cpauctionhouse.auction.AuctionListing;
 import org.bukkit.inventory.Inventory;
@@ -36,6 +37,12 @@ public final class AuctionGuiSession implements InventoryHolder {
 
     private int browseFetchGeneration;
     private boolean controlledTransition;
+
+    private AuctionBrowseSort browseSort = AuctionBrowseSort.NEWEST;
+    private String searchTerm = "";
+    private int browseFetchPage = 1;
+    private AuctionBrowseSort browseFetchSort = AuctionBrowseSort.NEWEST;
+    private String browseFetchSearch = "";
 
     public AuctionGuiSession(UUID playerId) {
         this.playerId = playerId;
@@ -163,6 +170,42 @@ public final class AuctionGuiSession implements InventoryHolder {
 
     public int getBrowseFetchGeneration() {
         return browseFetchGeneration;
+    }
+
+    public AuctionBrowseSort getBrowseSort() {
+        return browseSort;
+    }
+
+    public void setBrowseSort(AuctionBrowseSort browseSort) {
+        this.browseSort = browseSort == null ? AuctionBrowseSort.NEWEST : browseSort;
+    }
+
+    public String getSearchTerm() {
+        return searchTerm;
+    }
+
+    public void setSearchTerm(String searchTerm) {
+        this.searchTerm = searchTerm == null ? "" : searchTerm.trim();
+    }
+
+    public void setBrowseFetchContext(int page, AuctionBrowseSort sort, String search) {
+        this.browseFetchPage = Math.max(1, page);
+        this.browseFetchSort = sort == null ? AuctionBrowseSort.NEWEST : sort;
+        this.browseFetchSearch = search == null ? "" : search.trim();
+    }
+
+    public boolean matchesBrowseFetch(int generation, int page, AuctionBrowseSort sort, String search) {
+        if (generation != browseFetchGeneration) {
+            return false;
+        }
+        if (browseFetchPage != page) {
+            return false;
+        }
+        if (browseFetchSort != sort) {
+            return false;
+        }
+        String expected = search == null ? "" : search.trim();
+        return browseFetchSearch.equals(expected);
     }
 
     public void markControlledTransition() {

@@ -1,6 +1,7 @@
 package de.crafterspoint.cpauctionhouse.auction.gui;
 
 import de.crafterspoint.cpauctionhouse.CPAuctionHousePlugin;
+import de.crafterspoint.cpauctionhouse.auction.AuctionBrowseSort;
 import de.crafterspoint.cpauctionhouse.auction.AuctionCollectItem;
 import de.crafterspoint.cpauctionhouse.auction.AuctionConfig;
 import de.crafterspoint.cpauctionhouse.auction.AuctionHouseManager;
@@ -8,6 +9,7 @@ import de.crafterspoint.cpauctionhouse.auction.AuctionListing;
 import de.crafterspoint.cpauctionhouse.auction.AuctionPermission;
 import de.crafterspoint.cpauctionhouse.message.MessageService;
 import de.crafterspoint.cpauctionhouse.auction.gui.input.AnvilPriceInput;
+import de.crafterspoint.cpauctionhouse.auction.gui.input.AnvilSearchInput;
 import de.crafterspoint.cpauctionhouse.util.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -38,13 +40,24 @@ public final class AuctionGuiManager {
 
     private static final int PAGED_SIZE = 54;
     private static final int PAGED_GRID = 45;
-    private static final int NAV_BACK = 45;
-    private static final int NAV_REFRESH = 46;
-    private static final int NAV_PREV = 48;
+    private static final int BROWSE_PAGE_SIZE = 21;
+    private static final int[] BROWSE_LISTING_SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34
+    };
+    private static final int BROWSE_CENTER = 22;
+    private static final int NAV_PREV = 45;
+    private static final int NAV_BACK = 46;
+    private static final int NAV_STATUS = 47;
+    private static final int NAV_SEARCH = 48;
+    private static final int NAV_SORT = 49;
+    private static final int NAV_RESET = 50;
+    private static final int NAV_REFRESH = 52;
+    private static final int NAV_NEXT = 53;
     private static final int NAV_PAGE = 49;
-    private static final int NAV_NEXT = 50;
-    private static final int NAV_CLOSE = 53;
     private static final int NAV_COLLECT_ALL = 49;
+    private static final int NAV_CLOSE = 53;
 
     private static final int CONFIRM_SIZE = 27;
     private static final int CONFIRM_YES = 11;
@@ -60,6 +73,7 @@ public final class AuctionGuiManager {
     private final MessageService messages;
     private final AuctionGuiItemFactory items;
     private final AnvilPriceInput anvilPriceInput;
+    private final AnvilSearchInput anvilSearchInput;
 
     private final Map<UUID, AuctionGuiSession> sessions = new ConcurrentHashMap<UUID, AuctionGuiSession>();
     private final Map<UUID, Long> lastRefreshMs = new ConcurrentHashMap<UUID, Long>();
@@ -70,6 +84,7 @@ public final class AuctionGuiManager {
         this.messages = plugin.getMessageService();
         this.items = new AuctionGuiItemFactory(messages, auction);
         this.anvilPriceInput = new AnvilPriceInput(plugin, messages);
+        this.anvilSearchInput = new AnvilSearchInput(plugin, messages);
     }
 
     public boolean isEnabled() {
@@ -109,6 +124,10 @@ public final class AuctionGuiManager {
         show(player, session, AuctionGuiScreen.MAIN, inv, titleFor("auction.gui.title"));
     }
 
+    public void openBrowse(Player player) {
+        openBrowse(player, 1);
+    }
+
     public void openBrowse(Player player, int page) {
         if (!checkGuiReady(player)) {
             return;
@@ -118,8 +137,22 @@ public final class AuctionGuiManager {
             return;
         }
         AuctionGuiSession session = ensureSession(player);
-        session.setCurrentPage(page);
-        loadBrowse(player, session, page);
+        openBrowse(player, page, session.getBrowseSort(), session.getSearchTerm());
+    }
+
+    public void openBrowse(Player player, int page, AuctionBrowseSort sort, String searchTerm) {
+        if (!checkGuiReady(player)) {
+            return;
+        }
+        if (!player.hasPermission(AuctionPermission.BROWSE)) {
+            messages.sendPrefixed(player, "auction.no-permission");
+            return;
+        }
+        AuctionGuiSession session = ensureSession(player);
+        session.setBrowseSort(sort);
+        session.setSearchTerm(searchTerm);
+        session.setCurrentPage(Math.max(1, page));
+        loadBrowse(player, session, Math.max(1, page), session.getBrowseSort(), session.getSearchTerm());
     }
 
     public void openMyListings(Player player, int page) {
@@ -165,9 +198,13 @@ public final class AuctionGuiManager {
             return;
         }
         switch (action) {
-            case OPEN_BROWSE:
-                openBrowse(player, 1);
+            case OPEN_BROWSE: {
+                AuctionConfig browseCfg = auction.getConfig();
+                AuctionBrowseSort defaultSort = browseCfg != null
+                        ? browseCfg.getGuiDefaultSort() : AuctionBrowseSort.NEWEST;
+                openBrowse(player, 1, defaultSort, "");
                 break;
+            }
             case OPEN_SELL_HELP:
                 openSellPriceInput(player);
                 break;
@@ -179,6 +216,21 @@ public final class AuctionGuiManager {
                 break;
             case OPEN_SEARCH_HELP:
                 openSearchHelp(player);
+                break;
+            case OPEN_SEARCH_INPUT:
+                openSearchFromMain(player);
+                break;
+            case SEARCH_INPUT:
+                openSearchInput(player, session);
+                break;
+            case SORT_CYCLE:
+                openBrowse(player, 1, session.getBrowseSort().next(), session.getSearchTerm());
+                break;
+            case RESET_SEARCH:
+                if (isSearchActive(session.getSearchTerm())) {
+                    messages.sendPrefixed(player, "auction.gui.search-cleared");
+                }
+                openBrowse(player, 1, session.getBrowseSort(), "");
                 break;
             case BACK_TO_MAIN:
             case BACK:
@@ -207,7 +259,7 @@ public final class AuctionGuiManager {
                 confirmBuy(player, session);
                 break;
             case BACK_FROM_BUY_CONFIRM:
-                openBrowse(player, session.getCurrentPage());
+                reopenBrowse(player, session);
                 break;
             case OPEN_CANCEL_CONFIRM:
                 openCancelConfirm(player, session, session.getListingId(rawSlot));
@@ -228,10 +280,14 @@ public final class AuctionGuiManager {
 
     private void navigatePaged(Player player, AuctionGuiSession session, int page) {
         if (session.getCurrentScreen() == AuctionGuiScreen.BROWSE) {
-            openBrowse(player, page);
+            openBrowse(player, page, session.getBrowseSort(), session.getSearchTerm());
         } else if (session.getCurrentScreen() == AuctionGuiScreen.MY_LISTINGS) {
             openMyListings(player, page);
         }
+    }
+
+    private void reopenBrowse(Player player, AuctionGuiSession session) {
+        openBrowse(player, session.getCurrentPage(), session.getBrowseSort(), session.getSearchTerm());
     }
 
     private void refreshBrowse(Player player, AuctionGuiSession session) {
@@ -244,7 +300,8 @@ public final class AuctionGuiManager {
             return;
         }
         lastRefreshMs.put(id, Long.valueOf(now));
-        loadBrowse(player, session, session.getCurrentPage());
+        loadBrowse(player, session, session.getCurrentPage(),
+                session.getBrowseSort(), session.getSearchTerm());
     }
 
     public void openSellPriceInput(final Player player) {
@@ -356,6 +413,75 @@ public final class AuctionGuiManager {
         return current.isSimilar(snapshot) && current.getAmount() == snapshot.getAmount();
     }
 
+    private void openSearchFromMain(Player player) {
+        if (!checkGuiReady(player)) {
+            return;
+        }
+        AuctionGuiSession session = ensureSession(player);
+        AuctionConfig cfg = auction.getConfig();
+        if (cfg == null || !cfg.isGuiAnvilSearchInput()) {
+            openSearchHelp(player);
+            return;
+        }
+        openSearchInput(player, session, cfg.getGuiDefaultSort());
+    }
+
+    private void openSearchInput(final Player player, final AuctionGuiSession session) {
+        openSearchInput(player, session, session.getBrowseSort());
+    }
+
+    private void openSearchInput(final Player player,
+                                 final AuctionGuiSession session,
+                                 final AuctionBrowseSort sortAfter) {
+        AuctionConfig cfg = auction.getConfig();
+        if (cfg == null || !cfg.isGuiAnvilSearchInput()) {
+            openSearchHelp(player);
+            return;
+        }
+        final AuctionBrowseSort sort = sortAfter != null ? sortAfter : cfg.getGuiDefaultSort();
+        final String currentSearch = session != null ? session.getSearchTerm() : "";
+        closeGuiForAnvil(player, session);
+
+        boolean opened = anvilSearchInput.open(player, cfg, currentSearch,
+                new AnvilSearchInput.Callback() {
+                    @Override
+                    public void onSearch(Player p, String term) {
+                        if (!p.isOnline()) {
+                            return;
+                        }
+                        if (term == null || term.trim().isEmpty()) {
+                            messages.sendPrefixed(p, "auction.gui.search-cleared");
+                            openBrowse(p, 1, sort, "");
+                        } else {
+                            Map<String, String> ph = new HashMap<String, String>();
+                            ph.put("search", term.trim());
+                            messages.sendPrefixed(p, "auction.gui.search-applied", ph);
+                            openBrowse(p, 1, sort, term.trim());
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(Player p) {
+                        // no message — avoid spam on ESC
+                    }
+                });
+        if (!opened) {
+            messages.sendPrefixed(player, "auction.gui.anvil-search-open-failed");
+            openSearchHelp(player);
+        }
+    }
+
+    private void closeGuiForAnvil(Player player, AuctionGuiSession session) {
+        if (session != null) {
+            session.markControlledTransition();
+        }
+        player.closeInventory();
+    }
+
+    private static boolean isSearchActive(String term) {
+        return term != null && term.trim().length() > 0;
+    }
+
     private void openSellHelp(Player player) {
         AuctionGuiSession session = ensureSession(player);
         Inventory inv = Bukkit.createInventory(session, HELP_SIZE, titleFor("auction.gui.sell-help-title"));
@@ -384,7 +510,7 @@ public final class AuctionGuiManager {
         AuctionListing listing = session.findVisibleListing(listingId);
         if (listing == null) {
             messages.sendPrefixed(player, "auction.gui.error");
-            openBrowse(player, session.getCurrentPage());
+            reopenBrowse(player, session);
             return;
         }
         AuctionConfig cfg = auction.getConfig();
@@ -429,7 +555,7 @@ public final class AuctionGuiManager {
         AuctionListing listing = session.getPendingBuyListing();
         if (listing == null) {
             messages.sendPrefixed(player, "auction.buy-not-found");
-            openBrowse(player, session.getCurrentPage());
+            reopenBrowse(player, session);
             return;
         }
         auction.buyListing(player, listing.listingId()).thenAccept(new java.util.function.Consumer<AuctionHouseManager.BuyResult>() {
@@ -459,7 +585,7 @@ public final class AuctionGuiManager {
                     AuctionHouseManager.BuyResult.Failure f = (AuctionHouseManager.BuyResult.Failure) result;
                     messages.sendPrefixed(player, f.messageKey(), f.placeholders());
                 }
-                openBrowse(player, session.getCurrentPage());
+                reopenBrowse(player, session);
             }
         });
     }
@@ -540,81 +666,108 @@ public final class AuctionGuiManager {
         session.bind(MAIN_SELL, AuctionGuiAction.OPEN_SELL_HELP);
         session.bind(MAIN_LISTINGS, AuctionGuiAction.OPEN_MY_LISTINGS);
         session.bind(MAIN_COLLECT, AuctionGuiAction.OPEN_COLLECT);
-        session.bind(MAIN_SEARCH, AuctionGuiAction.OPEN_SEARCH_HELP);
+        session.bind(MAIN_SEARCH, AuctionGuiAction.OPEN_SEARCH_INPUT);
         session.bind(MAIN_CLOSE, AuctionGuiAction.CLOSE);
         return inv;
     }
 
-    private void loadBrowse(final Player player, final AuctionGuiSession session, final int page) {
+    private void loadBrowse(final Player player,
+                            final AuctionGuiSession session,
+                            final int page,
+                            final AuctionBrowseSort sort,
+                            final String searchTerm) {
         AuctionConfig cfg = auction.getConfig();
         final int fetchGen = session.beginBrowseFetch();
+        final String query = isSearchActive(searchTerm) ? searchTerm.trim() : null;
+        session.setBrowseFetchContext(page, sort, searchTerm);
+
         Inventory loading = Bukkit.createInventory(session, PAGED_SIZE, titleFor("auction.gui.title"));
         session.clearSlotBindings();
         fill(loading);
-        loading.setItem(PAGED_GRID / 2, items.loadingTile());
+        loading.setItem(BROWSE_CENTER, items.loadingTile());
         session.bind(NAV_BACK, AuctionGuiAction.BACK_TO_MAIN);
         loading.setItem(NAV_BACK, items.backButton());
         show(player, session, AuctionGuiScreen.BROWSE, loading, titleFor("auction.gui.title"));
 
-        auction.browseListings(page, PAGED_GRID, cfg.getGuiBrowseDefaultSort(), null)
+        auction.browseListings(page, BROWSE_PAGE_SIZE, sort, query)
                 .thenAccept(new java.util.function.Consumer<AuctionHouseManager.BrowsePage>() {
                     @Override
                     public void accept(AuctionHouseManager.BrowsePage browsePage) {
                         if (!player.isOnline()) {
                             return;
                         }
-                        if (fetchGen != session.getBrowseFetchGeneration()) {
+                        if (sessions.get(player.getUniqueId()) != session) {
                             return;
                         }
-                        if (sessions.get(player.getUniqueId()) != session) {
+                        if (session.getCurrentScreen() != AuctionGuiScreen.BROWSE) {
+                            return;
+                        }
+                        if (!session.matchesBrowseFetch(fetchGen, page, sort, searchTerm)) {
                             return;
                         }
                         session.setVisibleListings(browsePage.listings());
                         session.setCurrentPage(browsePage.page());
                         session.setTotalPages(browsePage.totalPages());
-                        Inventory inv = buildBrowse(session, browsePage, cfg);
+                        Inventory inv = buildBrowse(session, browsePage, cfg, sort, searchTerm);
                         show(player, session, AuctionGuiScreen.BROWSE, inv, titleFor("auction.gui.title"));
                     }
                 });
     }
 
-    private Inventory buildBrowse(AuctionGuiSession session, AuctionHouseManager.BrowsePage page, AuctionConfig cfg) {
+    private Inventory buildBrowse(AuctionGuiSession session,
+                                  AuctionHouseManager.BrowsePage page,
+                                  AuctionConfig cfg,
+                                  AuctionBrowseSort sort,
+                                  String searchTerm) {
         Inventory inv = Bukkit.createInventory(session, PAGED_SIZE, titleFor("auction.gui.title"));
         session.clearSlotBindings();
         fill(inv);
         long now = System.currentTimeMillis();
         UUID viewer = session.getPlayerId();
         boolean allowOwn = cfg.isAllowOwnPurchase();
+        boolean searchActive = isSearchActive(searchTerm);
         if (page.totalListings() == 0) {
-            inv.setItem(PAGED_GRID / 2, items.emptyBrowseTile());
+            inv.setItem(BROWSE_CENTER, items.emptyBrowseTile(searchActive));
         } else {
             List<AuctionListing> listings = page.listings();
-            for (int i = 0; i < listings.size() && i < PAGED_GRID; i++) {
+            for (int i = 0; i < listings.size() && i < BROWSE_LISTING_SLOTS.length; i++) {
+                int slot = BROWSE_LISTING_SLOTS[i];
                 AuctionListing listing = listings.get(i);
-                inv.setItem(i, items.browseListingTile(listing, viewer, allowOwn, now));
-                session.bindListing(i, AuctionGuiAction.OPEN_BUY_CONFIRM, listing.listingId());
+                inv.setItem(slot, items.browseListingTile(listing, viewer, allowOwn, now));
+                session.bindListing(slot, AuctionGuiAction.OPEN_BUY_CONFIRM, listing.listingId());
             }
         }
-        bindBrowseNav(session, inv, page.page(), page.totalPages());
+        bindBrowseNav(session, inv, page.page(), page.totalPages(), sort, searchTerm);
         return inv;
     }
 
-    private void bindBrowseNav(AuctionGuiSession session, Inventory inv, int page, int totalPages) {
+    private void bindBrowseNav(AuctionGuiSession session,
+                               Inventory inv,
+                               int page,
+                               int totalPages,
+                               AuctionBrowseSort sort,
+                               String searchTerm) {
         inv.setItem(NAV_BACK, items.backButton());
         session.bind(NAV_BACK, AuctionGuiAction.BACK_TO_MAIN);
+        inv.setItem(NAV_STATUS, items.browseStatusTile(page, totalPages, sort, searchTerm));
+        inv.setItem(NAV_SEARCH, items.browseSearchButton());
+        session.bind(NAV_SEARCH, AuctionGuiAction.SEARCH_INPUT);
+        inv.setItem(NAV_SORT, items.browseSortButton(sort));
+        session.bind(NAV_SORT, AuctionGuiAction.SORT_CYCLE);
+        if (isSearchActive(searchTerm)) {
+            inv.setItem(NAV_RESET, items.browseResetSearchButton());
+            session.bind(NAV_RESET, AuctionGuiAction.RESET_SEARCH);
+        }
         inv.setItem(NAV_REFRESH, items.refreshButton());
         session.bind(NAV_REFRESH, AuctionGuiAction.REFRESH_BROWSE);
         if (page > 1) {
             inv.setItem(NAV_PREV, items.previousPageButton());
             session.bind(NAV_PREV, AuctionGuiAction.PREV_PAGE);
         }
-        inv.setItem(NAV_PAGE, items.pageIndicator(page, totalPages));
         if (page < totalPages) {
             inv.setItem(NAV_NEXT, items.nextPageButton());
             session.bind(NAV_NEXT, AuctionGuiAction.NEXT_PAGE);
         }
-        inv.setItem(NAV_CLOSE, items.closeButton());
-        session.bind(NAV_CLOSE, AuctionGuiAction.CLOSE);
     }
 
     private void loadMyListings(final Player player, final AuctionGuiSession session, final int requestedPage) {
@@ -730,6 +883,10 @@ public final class AuctionGuiManager {
         AuctionGuiSession session = sessions.get(player.getUniqueId());
         if (session == null) {
             session = new AuctionGuiSession(player.getUniqueId());
+            AuctionConfig cfg = auction.getConfig();
+            if (cfg != null) {
+                session.setBrowseSort(cfg.getGuiDefaultSort());
+            }
             sessions.put(player.getUniqueId(), session);
         }
         return session;
