@@ -7,13 +7,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
- * Loads messages.yml and resolves keys with the configured prefix.
+ * Loads messages.yml and resolves keys with optional placeholders.
  */
 public final class MessageService {
 
@@ -62,20 +62,66 @@ public final class MessageService {
         return messages.getString(key, key);
     }
 
+    public String message(String key) {
+        return applyPlaceholders(getRaw(key), null);
+    }
+
+    public String message(String key, Map<String, String> placeholders) {
+        return applyPlaceholders(getRaw(key), placeholders);
+    }
+
     public String get(String key) {
-        String prefix = getRaw("prefix");
-        return prefix + getRaw(key);
+        return getPrefix() + message(key);
+    }
+
+    public String get(String key, Map<String, String> placeholders) {
+        return getPrefix() + message(key, placeholders);
     }
 
     public void send(CommandSender sender, String key) {
         sender.sendMessage(Text.colorize(get(key)));
     }
 
+    public void send(CommandSender sender, String key, Map<String, String> placeholders) {
+        sender.sendMessage(Text.colorize(get(key, placeholders)));
+    }
+
+    public void sendPrefixed(CommandSender sender, String key) {
+        sender.sendMessage(Text.colorize(getPrefix() + message(key)));
+    }
+
+    public void sendPrefixed(CommandSender sender, String key, Map<String, String> placeholders) {
+        sender.sendMessage(Text.colorize(getPrefix() + message(key, placeholders)));
+    }
+
     public void sendRaw(CommandSender sender, String key) {
-        sender.sendMessage(Text.colorize(getRaw(key)));
+        sender.sendMessage(Text.colorize(message(key)));
+    }
+
+    public void sendRaw(CommandSender sender, String key, Map<String, String> placeholders) {
+        sender.sendMessage(Text.colorize(message(key, placeholders)));
     }
 
     public void sendPrefixedPlaceholder(CommandSender sender) {
-        sender.sendMessage(Text.colorize(get("placeholder")));
+        sendPrefixed(sender, "placeholder");
+    }
+
+    private String getPrefix() {
+        return getRaw("prefix");
+    }
+
+    private String applyPlaceholders(String text, Map<String, String> placeholders) {
+        if (text == null) {
+            return "";
+        }
+        if (placeholders == null || placeholders.isEmpty()) {
+            return text;
+        }
+        String result = text;
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            String value = entry.getValue() == null ? "" : entry.getValue();
+            result = result.replace("{" + entry.getKey() + "}", value);
+        }
+        return result;
     }
 }

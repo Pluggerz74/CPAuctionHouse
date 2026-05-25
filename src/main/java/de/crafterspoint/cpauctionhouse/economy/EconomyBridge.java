@@ -16,5 +16,9 @@ public interface EconomyBridge {
 
     double getBalance(UUID playerId);
 
+    EconomyTransactionResult withdraw(UUID playerId, double amount, String reason);
+
+    EconomyTransactionResult deposit(UUID playerId, double amount, String reason);
+
     String format(double amount);
 }

@@ -1,15 +1,14 @@
 package de.crafterspoint.cpauctionhouse;
 
+import de.crafterspoint.cpauctionhouse.auction.AuctionHouseManager;
 import de.crafterspoint.cpauctionhouse.command.CPAuctionHouseCommand;
 import de.crafterspoint.cpauctionhouse.config.PluginConfig;
 import de.crafterspoint.cpauctionhouse.economy.EconomyBridge;
 import de.crafterspoint.cpauctionhouse.economy.NoEconomyBridge;
 import de.crafterspoint.cpauctionhouse.economy.VaultEconomyBridge;
 import de.crafterspoint.cpauctionhouse.message.MessageService;
-import de.crafterspoint.cpauctionhouse.storage.AuctionStorage;
 import de.crafterspoint.cpauctionhouse.storage.StorageType;
 import de.crafterspoint.cpauctionhouse.storage.mysql.MySqlAuctionStorage;
-import de.crafterspoint.cpauctionhouse.storage.sqlite.SQLiteAuctionStorage;
 import de.crafterspoint.cpauctionhouse.version.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -24,7 +23,7 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
     private MessageService messageService;
     private ServerVersion serverVersion;
     private EconomyBridge economyBridge;
-    private AuctionStorage auctionStorage;
+    private AuctionHouseManager auctionHouseManager;
 
     @Override
     public void onEnable() {
@@ -38,22 +37,29 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
 
         serverVersion = ServerVersion.detect();
         economyBridge = initializeEconomy();
-        auctionStorage = initializeStorage();
+
+        if (pluginConfig.getStorageType() == StorageType.MYSQL) {
+            new MySqlAuctionStorage(this, pluginConfig).logPlaceholder();
+        }
+
+        auctionHouseManager = new AuctionHouseManager(this);
+        auctionHouseManager.enable();
 
         registerCommands();
 
         getLogger().info("CPAuctionHouse enabled.");
         getLogger().info("Server: " + serverVersion);
-        getLogger().info("Storage: " + auctionStorage.getType().getConfigKey()
-                + " (" + (auctionStorage.isInitialized() ? "ready" : "not ready") + ")");
+        getLogger().info("Auction backend: "
+                + (auctionHouseManager.isActive() ? "active" : "inactive ("
+                + auctionHouseManager.getInactiveReason() + ")"));
         getLogger().info("Economy: " + economyBridge.providerName()
                 + " (" + (economyBridge.isAvailable() ? "available" : "unavailable") + ")");
     }
 
     @Override
     public void onDisable() {
-        if (auctionStorage != null) {
-            auctionStorage.close();
+        if (auctionHouseManager != null) {
+            auctionHouseManager.disable();
         }
         getLogger().info("CPAuctionHouse disabled.");
     }
@@ -63,8 +69,9 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
         pluginConfig.load();
         messageService.reload();
         economyBridge = initializeEconomy();
-        closeStorageQuietly();
-        auctionStorage = initializeStorage();
+        if (auctionHouseManager != null) {
+            auctionHouseManager.reload();
+        }
     }
 
     private EconomyBridge initializeEconomy() {
@@ -79,31 +86,6 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
             getLogger().warning("No Vault economy provider found. Auction features will be unavailable.");
         }
         return new NoEconomyBridge();
-    }
-
-    private AuctionStorage initializeStorage() {
-        AuctionStorage storage;
-        if (pluginConfig.getStorageType() == StorageType.MYSQL) {
-            storage = new MySqlAuctionStorage(this, pluginConfig);
-        } else {
-            storage = new SQLiteAuctionStorage(this, pluginConfig);
-        }
-
-        try {
-            storage.initialize();
-        } catch (Exception ex) {
-            getLogger().severe("Storage initialization failed: " + ex.getMessage());
-            if (pluginConfig.isDebug()) {
-                ex.printStackTrace();
-            }
-        }
-        return storage;
-    }
-
-    private void closeStorageQuietly() {
-        if (auctionStorage != null) {
-            auctionStorage.close();
-        }
     }
 
     private void registerCommands() {
@@ -141,7 +123,7 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
         return economyBridge;
     }
 
-    public AuctionStorage getAuctionStorage() {
-        return auctionStorage;
+    public AuctionHouseManager getAuctionHouseManager() {
+        return auctionHouseManager;
     }
 }

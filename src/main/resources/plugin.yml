@@ -17,3 +17,11 @@ permissions:
     default: true
   cpauctionhouse.admin:
     default: op
+  cpauctionhouse.sell:
+    default: true
+  cpauctionhouse.buy:
+    default: true
+  cpauctionhouse.cancel:
+    default: true
+  cpauctionhouse.collect:
+    default: true

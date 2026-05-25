@@ -1,6 +1,7 @@
 package de.crafterspoint.cpauctionhouse.economy;
 
 import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
@@ -10,8 +11,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * Vault-backed economy bridge. Only loaded when Vault and an economy
- * provider are present at runtime.
+ * Vault-backed economy bridge.
  */
 public final class VaultEconomyBridge implements EconomyBridge {
 
@@ -82,11 +82,58 @@ public final class VaultEconomyBridge implements EconomyBridge {
     }
 
     @Override
+    public EconomyTransactionResult withdraw(UUID playerId, double amount, String reason) {
+        if (amount < 0) {
+            return EconomyTransactionResult.failure("economy.invalid-amount", null);
+        }
+        try {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(playerId);
+            double balanceBefore = economy.getBalance(player);
+            if (!economy.has(player, amount)) {
+                return EconomyTransactionResult.failure("economy.insufficient-funds", null);
+            }
+            EconomyResponse response = economy.withdrawPlayer(player, amount);
+            return toResult(response, balanceBefore);
+        } catch (Throwable t) {
+            return EconomyTransactionResult.failure("economy.transaction-failed", t.getMessage());
+        }
+    }
+
+    @Override
+    public EconomyTransactionResult deposit(UUID playerId, double amount, String reason) {
+        if (amount < 0) {
+            return EconomyTransactionResult.failure("economy.invalid-amount", null);
+        }
+        try {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(playerId);
+            double balanceBefore = economy.getBalance(player);
+            EconomyResponse response = economy.depositPlayer(player, amount);
+            return toResult(response, balanceBefore);
+        } catch (Throwable t) {
+            return EconomyTransactionResult.failure("economy.transaction-failed", t.getMessage());
+        }
+    }
+
+    @Override
     public String format(double amount) {
         try {
             return economy.format(amount);
         } catch (Throwable t) {
             return String.format(Locale.ROOT, "%.2f", amount);
         }
+    }
+
+    private EconomyTransactionResult toResult(EconomyResponse response, double balanceBefore) {
+        if (response == null) {
+            return EconomyTransactionResult.failure("economy.transaction-failed", null);
+        }
+        if (response.transactionSuccess()) {
+            return EconomyTransactionResult.ok(balanceBefore, response.balance);
+        }
+        String reasonKey = response.errorMessage != null
+                && response.errorMessage.toLowerCase(Locale.ROOT).contains("not enough")
+                ? "economy.insufficient-funds"
+                : "economy.transaction-failed";
+        return EconomyTransactionResult.failure(reasonKey, response.errorMessage);
     }
 }

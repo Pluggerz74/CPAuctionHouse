@@ -19,3 +19,48 @@ economy:
 settings:
   language: de
   debug: false
+
+auction:
+  enabled: true
+  listings:
+    max-active-per-player: 10
+    duration-hours: 72
+    min-price: 1.0
+    max-price: 1000000000.0
+    allow-own-purchase: false
+    blocked-materials: []
+  economy:
+    listing-fee: 0.0
+    sale-tax-percent: 5.0
+  confirmations:
+    expensive-purchase-threshold: 10000.0
+  cleanup:
+    expire-check-interval-seconds: 60
+    old-listing-retention-days: 30
+  browse:
+    page-size: 8
+  gui:
+    enabled: false
+    info-button-cooldown-seconds: 5
+    rows:
+      main: 3
+      browse: 6
+      listings: 6
+      collect: 6
+    refresh-after-action: true
+    confirmation:
+      enabled: true
+    filler:
+      enabled: true
+      material: GRAY_STAINED_GLASS_PANE
+      name: " "
+    sell:
+      enabled: false
+      use-anvil-price-input: true
+      return-to-main-after-create: false
+      open-listings-after-create: true
+    browse:
+      default-sort: newest
+      show-refresh-button: true
+      show-sort-button: true
+  debug: false
