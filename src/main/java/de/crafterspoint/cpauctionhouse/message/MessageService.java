@@ -130,10 +130,6 @@ public final class MessageService {
         sender.sendMessage(Text.colorize(message(key, placeholders)));
     }
 
-    public void sendPrefixedPlaceholder(CommandSender sender) {
-        sendPrefixed(sender, "placeholder");
-    }
-
     private String getPrefix() {
         return getRaw("prefix");
     }

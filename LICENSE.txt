@@ -1,4 +1,5 @@
 CPAuctionHouse — Proprietary Source-Available License
+Version 1.0.0-RC1
 
 Copyright (c) CraftersPoint. All rights reserved.
 

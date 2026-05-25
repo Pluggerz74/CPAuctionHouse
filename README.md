@@ -1,85 +1,82 @@
 # CPAuctionHouse
 
-Premium Auction House plugin for **Bukkit**, **Spigot**, **Paper**, and **Purpur**.
+**Premium Auction House Plugin** for **Bukkit**, **Spigot**, **Paper**, and **Purpur**.
+
+| | |
+|---|---|
+| **Version** | 1.0.0-RC1 (Release Candidate) |
+| **Minecraft** | 1.13+ |
+| **Java** | 8+ (bytecode target: Java 8) |
+| **Economy** | Vault required |
+| **Storage** | SQLite (default), MySQL/MariaDB (optional) |
+| **License** | Proprietary — All Rights Reserved |
 
 ## Overview
 
-CPAuctionHouse is a standalone premium auction house plugin targeting **Minecraft 1.13+**. It uses SQLite by default, with optional MySQL/MariaDB support planned for production deployments.
+CPAuctionHouse is a standalone premium auction house plugin with a full GUI marketplace, text command fallback, and German default messages. Players can sell items, browse listings, search and sort the market, buy listings, cancel their own offers, and collect returned items.
 
-## Requirements
-
-- Java 8 or newer (bytecode target: Java 8)
-- Bukkit / Spigot / Paper / Purpur 1.13+
-- [Vault](https://www.spigotmc.org/resources/vault.34315/) with a registered economy provider (required for auction features)
+Built for production servers: SQLite works out of the box with no external database. MySQL/MariaDB is available for larger networks that need shared storage.
 
 ## Features
 
-- Full auction backend (listings, buy, cancel, collect, browse, search)
-- German GUI hub (`/ah`) with browse, my listings, collect, and anvil sell price input
-- Text commands as fallback (`/ah sell`, `/ah browse`, etc.)
-- SQLite storage (shaded), Vault economy integration
+- **GUI marketplace** — `/ah` opens the main hub (browse, sell, listings, collect, search)
+- **Anvil price input** — sell flow via in-game anvil GUI
+- **Search & sort** — filter by item, seller, or ID; cycle sort modes in browse GUI
+- **Text commands** — `/ah sell`, `/ah browse`, `/ah search`, `/ah buy`, and more
+- **SQLite storage** — shaded driver, no setup required
+- **MySQL/MariaDB** — optional shared database with HikariCP pooling
+- **Vault economy** — listing fees, sale tax, buy/sell transactions
+- **Session-based GUI** — no item duplication via shift-click, drag, or hotbar keys
 
-## Build
+## Requirements
+
+- Java 8 or newer
+- Bukkit / Spigot / Paper / Purpur **1.13+**
+- [Vault](https://www.spigotmc.org/resources/vault.34315/) with a registered economy provider (e.g. EssentialsX Economy)
+
+## Quick Start
+
+1. Install Vault and a compatible economy plugin.
+2. Place `cpauctionhouse-1.0.0-RC1.jar` in your `plugins/` folder.
+3. Start or restart the server.
+4. Run `/cpauctionhouse info` to verify storage and economy.
+5. Open `/ah` to use the marketplace.
+
+See [INSTALLATION.md](INSTALLATION.md) for detailed setup including MySQL.
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [INSTALLATION.md](INSTALLATION.md) | Setup and first-run checklist |
+| [COMMANDS.md](COMMANDS.md) | All player and admin commands |
+| [PERMISSIONS.md](PERMISSIONS.md) | Permission nodes and defaults |
+| [CONFIGURATION.md](CONFIGURATION.md) | `config.yml` reference |
+| [TESTING.md](TESTING.md) | Release testing checklist |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | Bundled library attributions |
+| [LICENSE.txt](LICENSE.txt) | Proprietary license terms |
+| [EULA.md](EULA.md) | End User License Agreement |
+
+## Build (from source)
 
 ```bash
 mvn clean package
 ```
 
-The compiled plugin JAR is written to `target/cpauctionhouse-1.0.0-SNAPSHOT.jar`.
-
-## Configuration
-
-- `config.yml` — storage, economy, auction, and GUI settings
-- `messages.yml` — user-facing German messages
-
-### Storage
-
-**SQLite (default)** — no external database required. Data is stored in `plugins/CPAuctionHouse/auctionhouse.db`.
-
-**MySQL / MariaDB (optional)** — recommended for larger servers or networks that need a shared database.
-
-```yaml
-storage:
-  type: mysql
-  fallback-to-sqlite-on-error: false
-
-mysql:
-  host: localhost
-  port: 3306
-  database: cpauctionhouse
-  username: root
-  password: "your-password"
-  pool-size: 10
-  use-ssl: false
-  connection-timeout-ms: 10000
-  max-lifetime-ms: 1800000
-  idle-timeout-ms: 600000
-  parameters: "useUnicode=true&characterEncoding=utf8"
-```
-
-MySQL requires a reachable server, an existing database, and valid credentials. If connection fails and `fallback-to-sqlite-on-error` is `false`, the auction backend stays disabled until the issue is fixed.
-
-See [TESTING.md](TESTING.md) for a manual test checklist.
+Output: `target/cpauctionhouse-1.0.0-RC1.jar`
 
 ## Third-Party Libraries
 
-This plugin shades the following libraries into the JAR:
-
-- **AnvilGUI** (WesJD, MIT) — anvil text input for GUI sell flow
-- **sqlite-jdbc** (Xerial, Apache 2.0) — SQLite database driver
-- **MySQL Connector/J** (Oracle, GPL 2.0 with Universal FOSS Exception) — MySQL/MariaDB driver
-- **HikariCP** (brettwooldridge, Apache 2.0) — JDBC connection pooling for MySQL
-- **SLF4J API** (QOS.ch, MIT) — logging API used by HikariCP
-
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution details.
+This plugin shades: AnvilGUI (MIT), sqlite-jdbc (Apache 2.0), MySQL Connector/J, HikariCP (Apache 2.0), SLF4J API (MIT). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License
 
-This repository is **source-available**, not open source.
+This project is **source-available**, not open source.
 
 **License:** Proprietary — All Rights Reserved
 
-See [LICENSE.txt](LICENSE.txt) and [EULA.md](EULA.md) for terms. Viewing or forking this repository on GitHub does **not** grant usage rights. A purchased license is required to run the compiled plugin on a server.
+Viewing or forking this repository does **not** grant usage rights. A purchased license is required to run the compiled plugin on a server. See [LICENSE.txt](LICENSE.txt) and [EULA.md](EULA.md).
 
 ## Author
 

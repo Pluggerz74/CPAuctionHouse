@@ -53,7 +53,7 @@ public final class CPAuctionHouseCommand implements CommandExecutor, TabComplete
                 messages.send(sender, "no-permission");
                 return true;
             }
-            sendAdminInfo(sender);
+            sendPluginInfo(sender, true);
             return true;
         }
 
@@ -62,33 +62,57 @@ public final class CPAuctionHouseCommand implements CommandExecutor, TabComplete
             return true;
         }
 
-        messages.sendPrefixedPlaceholder(sender);
-        AuctionHouseManager manager = plugin.getAuctionHouseManager();
-        if (manager != null && manager.isActive()) {
-            messages.sendRaw(sender, "backend-active");
-        } else {
-            messages.sendRaw(sender, "backend-inactive");
-        }
+        sendPluginInfo(sender, false);
         return true;
     }
 
-    private void sendAdminInfo(final CommandSender sender) {
-        AuctionHouseManager manager = plugin.getAuctionHouseManager();
+    private void sendPluginInfo(final CommandSender sender, final boolean detailed) {
+        final AuctionHouseManager manager = plugin.getAuctionHouseManager();
+        final String version = plugin.getDescription().getVersion();
+        final boolean guiEnabled = manager != null
+                && manager.getConfig() != null
+                && manager.getConfig().isGuiEnabled();
+
+        Map<String, String> versionPh = new HashMap<String, String>();
+        versionPh.put("version", version);
+        messages.sendRaw(sender, "plugin-info-header");
+        messages.sendRaw(sender, "plugin-info-version", versionPh);
+
+        Map<String, String> guiPh = new HashMap<String, String>();
+        guiPh.put("gui", guiEnabled ? "aktiviert" : "deaktiviert");
+        messages.sendRaw(sender, "plugin-info-gui", guiPh);
+
         if (manager == null) {
-            messages.sendRaw(sender, "auction.disabled");
+            Map<String, String> backendPh = new HashMap<String, String>();
+            backendPh.put("backend", "inaktiv");
+            messages.sendRaw(sender, "plugin-info-backend", backendPh);
             return;
         }
+
+        Map<String, String> backendPh = new HashMap<String, String>();
+        backendPh.put("backend", manager.isActive() ? "aktiv" : "inaktiv");
+        messages.sendRaw(sender, "plugin-info-backend", backendPh);
+
         manager.getStats().thenAccept(new java.util.function.Consumer<AuctionHouseManager.Stats>() {
             @Override
             public void accept(AuctionHouseManager.Stats stats) {
+                Map<String, String> storagePh = new HashMap<String, String>();
+                storagePh.put("storage", stats.storageType());
+                messages.sendRaw(sender, "plugin-info-storage", storagePh);
+
+                Map<String, String> economyPh = new HashMap<String, String>();
+                economyPh.put("provider", formatEconomyProvider(stats));
+                messages.sendRaw(sender, "plugin-info-economy", economyPh);
+
+                if (!detailed) {
+                    return;
+                }
+
                 Map<String, String> state = new HashMap<String, String>();
                 state.put("state", stats.active() ? "aktiv" : "inaktiv");
                 state.put("reason", stats.inactiveReason() == null ? "-" : stats.inactiveReason());
-                messages.sendRaw(sender, "auction.admin-info-header");
                 messages.sendRaw(sender, "auction.admin-info-state", state);
-                Map<String, String> storage = new HashMap<String, String>();
-                storage.put("type", stats.storageType());
-                messages.sendRaw(sender, "auction.admin-info-storage", storage);
+
                 Map<String, String> counts = new HashMap<String, String>();
                 counts.put("active", Integer.toString(stats.activeListings()));
                 counts.put("sold", Integer.toString(stats.soldListings()));
@@ -96,16 +120,29 @@ public final class CPAuctionHouseCommand implements CommandExecutor, TabComplete
                 counts.put("cancelled", Integer.toString(stats.cancelledListings()));
                 counts.put("collect", Integer.toString(stats.collectItems()));
                 messages.sendRaw(sender, "auction.admin-info-counts", counts);
+
                 Map<String, String> tax = new HashMap<String, String>();
                 tax.put("percent", Double.toString(stats.saleTaxPercent()));
                 messages.sendRaw(sender, "auction.admin-info-tax", tax);
-                Map<String, String> economy = new HashMap<String, String>();
-                economy.put("bridge", stats.economyBridge());
-                economy.put("provider", stats.economyProvider());
-                economy.put("available", stats.economyAvailable() ? "ja" : "nein");
-                messages.sendRaw(sender, "auction.admin-info-economy", economy);
+
+                Map<String, String> economyDetail = new HashMap<String, String>();
+                economyDetail.put("bridge", stats.economyBridge());
+                economyDetail.put("provider", stats.economyProvider());
+                economyDetail.put("available", stats.economyAvailable() ? "ja" : "nein");
+                messages.sendRaw(sender, "auction.admin-info-economy", economyDetail);
             }
         });
+    }
+
+    private static String formatEconomyProvider(AuctionHouseManager.Stats stats) {
+        if (stats == null) {
+            return "-";
+        }
+        String provider = stats.economyProvider();
+        if (provider == null || provider.trim().isEmpty()) {
+            return stats.economyAvailable() ? "Vault" : "nicht verfuegbar";
+        }
+        return provider;
     }
 
     @Override

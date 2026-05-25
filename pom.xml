@@ -6,7 +6,7 @@
 
     <groupId>de.crafterspoint</groupId>
     <artifactId>cpauctionhouse</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-RC1</version>
     <packaging>jar</packaging>
 
     <name>CPAuctionHouse</name>
@@ -81,6 +81,12 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

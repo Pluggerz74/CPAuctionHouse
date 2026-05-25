@@ -1,6 +1,6 @@
 # CPAuctionHouse — End User License Agreement (EULA)
 
-**Last updated:** 2026
+**Last updated:** May 2026
 
 This End User License Agreement ("EULA") is a legal agreement between you
 ("Buyer", "Licensee", "you") and CraftersPoint ("Licensor", "we", "us") for

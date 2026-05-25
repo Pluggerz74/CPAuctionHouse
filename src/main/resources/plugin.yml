@@ -1,31 +1,45 @@
 name: CPAuctionHouse
 main: de.crafterspoint.cpauctionhouse.CPAuctionHousePlugin
-version: 1.0.0-SNAPSHOT
+version: ${project.version}
 api-version: 1.13
 author: CraftersPoint
+description: Premium auction house marketplace for Bukkit, Spigot, Paper, and Purpur.
+website: https://github.com/CraftersPoint/CPAuctionHouse
 softdepend:
   - Vault
 commands:
   cpauctionhouse:
-    description: CPAuctionHouse main command
+    description: CPAuctionHouse plugin info and admin commands
+    usage: /cpauctionhouse [info|reload]
     aliases: [cpah]
+    permission: cpauctionhouse.use
   auctionhouse:
-    description: Open the auction house
+    description: Open the auction house GUI or run auction commands
+    usage: /ah [help|sell|browse|search|buy|listings|cancel|collect|admin]
     aliases: [ah, auktion]
+    permission: cpauctionhouse.use
 permissions:
   cpauctionhouse.use:
+    description: Access the auction house and basic plugin commands
     default: true
-  cpauctionhouse.admin:
-    default: op
   cpauctionhouse.sell:
+    description: Create auction listings
     default: true
   cpauctionhouse.buy:
+    description: Purchase auction listings
     default: true
   cpauctionhouse.cancel:
+    description: Cancel own auction listings
     default: true
   cpauctionhouse.collect:
+    description: Collect items from the auction mailbox
     default: true
   cpauctionhouse.browse:
+    description: Browse the auction marketplace
     default: true
   cpauctionhouse.listings:
+    description: View own active auction listings
     default: true
+  cpauctionhouse.admin:
+    description: Admin commands (reload, cleanup, remove listings, info)
+    default: op

@@ -47,6 +47,10 @@ public final class AuctionCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length == 0) {
+            if (!auction.isActive()) {
+                messages.sendPrefixed(sender, "auction.disabled");
+                return true;
+            }
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 AuctionGuiManager gui = plugin.getAuctionGuiManager();

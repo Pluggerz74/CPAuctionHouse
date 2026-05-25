@@ -1,10 +1,17 @@
+# CPAuctionHouse default configuration
+# Documentation: CONFIGURATION.md
+
+# Storage backend: sqlite (default) or mysql
 storage:
-  type: sqlite # sqlite or mysql
+  type: sqlite
+  # If mysql fails to connect, fall back to SQLite when true
   fallback-to-sqlite-on-error: false
 
+# SQLite settings (recommended for small/medium servers)
 sqlite:
   file: auctionhouse.db
 
+# MySQL/MariaDB settings (recommended for large servers/networks)
 mysql:
   host: localhost
   port: 3306
@@ -19,6 +26,7 @@ mysql:
   parameters: "useUnicode=true&characterEncoding=utf8"
 
 economy:
+  # Require Vault with a registered economy provider
   require-vault: true
 
 settings:
@@ -33,6 +41,7 @@ auction:
     min-price: 1.0
     max-price: 1000000000.0
     allow-own-purchase: false
+    # Material names blocked from listing (e.g. BEDROCK)
     blocked-materials: []
   economy:
     listing-fee: 0.0
@@ -54,6 +63,7 @@ auction:
     anvil-search-input: true
     anvil-search-title: "&6Suche eingeben"
     anvil-search-initial-text: "Suche"
+    # NEWEST, OLDEST, PRICE_LOW_TO_HIGH, PRICE_HIGH_TO_LOW, ENDING_SOON
     default-sort: "NEWEST"
     info-button-cooldown-seconds: 5
     rows:
