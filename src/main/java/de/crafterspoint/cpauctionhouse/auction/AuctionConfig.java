@@ -37,6 +37,8 @@ public final class AuctionConfig {
     private final int browsePageSize;
 
     private final boolean guiEnabled;
+    private final String guiTitle;
+    private final long guiRefreshCooldownMs;
     private final int guiRowsMain;
     private final int guiRowsBrowse;
     private final int guiRowsListings;
@@ -105,7 +107,9 @@ public final class AuctionConfig {
         int rawPageSize = root.getInt("auction.browse.page-size", 8);
         this.browsePageSize = Math.max(3, Math.min(rawPageSize, 50));
 
-        this.guiEnabled = root.getBoolean("auction.gui.enabled", false);
+        this.guiEnabled = root.getBoolean("auction.gui.enabled", true);
+        this.guiTitle = root.getString("auction.gui.title", "&6Auktionshaus");
+        this.guiRefreshCooldownMs = Math.max(0L, root.getLong("auction.gui.refresh-cooldown-ms", 750L));
         this.guiRowsMain = clampRows(root.getInt("auction.gui.rows.main", 3), 1, 3);
         this.guiRowsBrowse = clampRows(root.getInt("auction.gui.rows.browse", 6), 3, 6);
         this.guiRowsListings = clampRows(root.getInt("auction.gui.rows.listings", 6), 3, 6);
@@ -212,6 +216,14 @@ public final class AuctionConfig {
 
     public boolean isGuiEnabled() {
         return guiEnabled;
+    }
+
+    public String getGuiTitle() {
+        return guiTitle;
+    }
+
+    public long getGuiRefreshCooldownMs() {
+        return guiRefreshCooldownMs;
     }
 
     public int getGuiRowsMain() {

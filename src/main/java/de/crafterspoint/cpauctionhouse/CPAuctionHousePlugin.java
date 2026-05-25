@@ -2,6 +2,8 @@ package de.crafterspoint.cpauctionhouse;
 
 import de.crafterspoint.cpauctionhouse.auction.AuctionCommand;
 import de.crafterspoint.cpauctionhouse.auction.AuctionHouseManager;
+import de.crafterspoint.cpauctionhouse.auction.gui.AuctionGuiClickListener;
+import de.crafterspoint.cpauctionhouse.auction.gui.AuctionGuiManager;
 import de.crafterspoint.cpauctionhouse.command.CPAuctionHouseCommand;
 import de.crafterspoint.cpauctionhouse.config.PluginConfig;
 import de.crafterspoint.cpauctionhouse.economy.EconomyBridge;
@@ -25,6 +27,8 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
     private ServerVersion serverVersion;
     private EconomyBridge economyBridge;
     private AuctionHouseManager auctionHouseManager;
+    private AuctionGuiManager auctionGuiManager;
+    private AuctionGuiClickListener auctionGuiClickListener;
 
     @Override
     public void onEnable() {
@@ -46,6 +50,12 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
         auctionHouseManager = new AuctionHouseManager(this);
         auctionHouseManager.enable();
 
+        auctionGuiManager = new AuctionGuiManager(this, auctionHouseManager);
+        if (auctionGuiClickListener == null) {
+            auctionGuiClickListener = new AuctionGuiClickListener(auctionGuiManager);
+            getServer().getPluginManager().registerEvents(auctionGuiClickListener, this);
+        }
+
         registerCommands();
 
         getLogger().info("CPAuctionHouse enabled.");
@@ -59,6 +69,9 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (auctionGuiManager != null) {
+            auctionGuiManager.closeAll();
+        }
         if (auctionHouseManager != null) {
             auctionHouseManager.disable();
         }
@@ -80,6 +93,9 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
         economyBridge = initializeEconomy();
         if (auctionHouseManager != null) {
             auctionHouseManager.reload();
+        }
+        if (auctionGuiManager != null) {
+            auctionGuiManager.reload();
         }
     }
 
@@ -135,5 +151,9 @@ public final class CPAuctionHousePlugin extends JavaPlugin {
 
     public AuctionHouseManager getAuctionHouseManager() {
         return auctionHouseManager;
+    }
+
+    public AuctionGuiManager getAuctionGuiManager() {
+        return auctionGuiManager;
     }
 }

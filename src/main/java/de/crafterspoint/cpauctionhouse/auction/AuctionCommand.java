@@ -1,6 +1,7 @@
 package de.crafterspoint.cpauctionhouse.auction;
 
 import de.crafterspoint.cpauctionhouse.CPAuctionHousePlugin;
+import de.crafterspoint.cpauctionhouse.auction.gui.AuctionGuiManager;
 import de.crafterspoint.cpauctionhouse.message.MessageService;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -46,6 +47,14 @@ public final class AuctionCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length == 0) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                AuctionGuiManager gui = plugin.getAuctionGuiManager();
+                if (gui != null && gui.isEnabled()) {
+                    gui.openMain(player);
+                    return true;
+                }
+            }
             sendHelp(sender);
             return true;
         }

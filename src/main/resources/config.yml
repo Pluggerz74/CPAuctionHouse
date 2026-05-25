@@ -40,7 +40,9 @@ auction:
   browse:
     page-size: 8
   gui:
-    enabled: false
+    enabled: true
+    title: "&6Auktionshaus"
+    refresh-cooldown-ms: 750
     info-button-cooldown-seconds: 5
     rows:
       main: 3
