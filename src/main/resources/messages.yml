@@ -1,0 +1,6 @@
+prefix: "&6CPAuctionHouse &8» "
+no-permission: "&cDazu hast du keine Berechtigung."
+reload-success: "&aCPAuctionHouse wurde neu geladen."
+economy-missing: "&cKein Vault-Economy-System gefunden. Das Auktionshaus ist deaktiviert."
+storage-error: "&cDie Datenbank konnte nicht initialisiert werden."
+placeholder: "&7Standalone-Grundsystem geladen. Auktionshaus-Logik wird im nächsten Schritt integriert."

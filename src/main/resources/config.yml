@@ -1,0 +1,21 @@
+storage:
+  type: sqlite
+
+sqlite:
+  file: auctionhouse.db
+
+mysql:
+  host: localhost
+  port: 3306
+  database: cpauctionhouse
+  username: root
+  password: ""
+  pool-size: 10
+  use-ssl: false
+
+economy:
+  require-vault: true
+
+settings:
+  language: de
+  debug: false

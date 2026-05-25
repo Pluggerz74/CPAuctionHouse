@@ -1,0 +1,19 @@
+name: CPAuctionHouse
+main: de.crafterspoint.cpauctionhouse.CPAuctionHousePlugin
+version: 1.0.0-SNAPSHOT
+api-version: 1.13
+author: CraftersPoint
+softdepend:
+  - Vault
+commands:
+  cpauctionhouse:
+    description: CPAuctionHouse main command
+    aliases: [cpah]
+  auctionhouse:
+    description: Open the auction house
+    aliases: [ah, auktion]
+permissions:
+  cpauctionhouse.use:
+    default: true
+  cpauctionhouse.admin:
+    default: op

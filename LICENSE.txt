@@ -1,0 +1,46 @@
+CPAuctionHouse — Proprietary Source-Available License
+
+Copyright (c) CraftersPoint. All rights reserved.
+
+IMPORTANT: READ CAREFULLY BEFORE VIEWING, DOWNLOADING, OR USING THIS SOFTWARE.
+
+1. All Rights Reserved
+
+   All source code, documentation, assets, and related materials in this
+   repository are the exclusive property of CraftersPoint unless otherwise
+   stated. All rights are reserved.
+
+2. Source Available for Viewing and Evaluation Only
+
+   This repository is made source-available solely for viewing and evaluation
+   purposes. Access to the source code does not grant any license to use,
+   copy, modify, distribute, or deploy the software.
+
+3. Restrictions Without Written Permission
+
+   You may not, without prior written permission from CraftersPoint:
+
+   - copy, reproduce, or duplicate any part of this software;
+   - redistribute, publish, leak, or share the source code or compiled plugin;
+   - resell, sublicense, or commercially exploit the software;
+   - create derivative works based on this software;
+   - rebrand, repackage, or misrepresent the software as your own;
+   - use the software on any Minecraft server or in any production environment.
+
+4. Purchased License and EULA
+
+   A valid purchased license grants usage rights only as described in EULA.md.
+   No other rights are implied or granted.
+
+5. GitHub / Forking
+
+   Forking, starring, or viewing this repository on GitHub or any other
+   platform does not grant usage rights, deployment rights, or ownership of
+   any kind.
+
+6. No Warranty
+
+   This software is provided "as is" without warranty of any kind. See
+   EULA.md for full disclaimer terms.
+
+For licensing inquiries, contact CraftersPoint.

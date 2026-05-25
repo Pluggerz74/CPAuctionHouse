@@ -1,0 +1,13 @@
+target/
+.idea/
+.vscode/
+*.iml
+*.class
+*.log
+*.db
+*.sqlite
+*.sqlite3
+run/
+server/
+plugins/
+dependency-reduced-pom.xml
